@@ -44,6 +44,7 @@ where `F1 : F2 : F3 : F4` is the (two's complement) byte-array representation of
                       | #bytes32 ( Int )
                       | #bool    ( Int )
                       | #bytes   ( WordStack )
+                      | #string  ( String )
                       | #array   ( TypedArg , Int , TypedArgs )
  // -----------------------------------------------------------
 
@@ -77,6 +78,7 @@ where `F1 : F2 : F3 : F4` is the (two's complement) byte-array representation of
     rule #typeName(   #bytes32( _ )) => "bytes32"
     rule #typeName(      #bool( _ )) => "bool"
     rule #typeName(     #bytes( _ )) => "bytes"
+    rule #typeName(    #string( _ )) => "string"
     rule #typeName( #array(T, _, _)) => #typeName(T) +String "[]"
 
     syntax WordStack ::= #encodeArgs    ( TypedArgs )                               [function]
@@ -160,6 +162,7 @@ where `F1 : F2 : F3 : F4` is the (two's complement) byte-array representation of
     // dynamic Type
     rule #enc(        #bytes(WS)) => #enc(#uint256(#sizeWordStack(WS))) ++ #padRightToWidth(#ceil32(#sizeWordStack(WS)), WS)
     rule #enc(#array(_, N, DATA)) => #enc(#uint256(N)) ++ #encodeArgs(DATA)
+    rule #enc(      #string(STR)) => #enc(#bytes(#parseByteStackRaw(STR)))
 
     syntax Int ::= #getValue ( TypedArg ) [function]
  // ------------------------------------------------
