@@ -2226,7 +2226,7 @@ A `ScheduleFlag` is a boolean determined by the fee schedule; applying a `Schedu
 
     syntax ScheduleFlag ::= "Gselfdestructnewaccount" | "Gstaticcalldepth" | "Gemptyisnonexistent" | "Gzerovaluenewaccountgas"
                           | "Ghasrevert"              | "Ghasreturndata"   | "Ghasstaticcall"      | "Ghasshift"
-                          | "Ghasdirtysstore"         | "Ghascreate2"      | "Ghasextcodehash"
+                          | "Ghasdirtysstore"         | "Ghascreate2"      | "Ghasextcodehash"     | "Ghasdupn"
  // ------------------------------------------------------------------------------------------
 ```
 
@@ -2313,6 +2313,7 @@ A `ScheduleConst` is a constant determined by the fee schedule.
     rule Ghasdirtysstore         << DEFAULT >> => false
     rule Ghascreate2             << DEFAULT >> => false
     rule Ghasextcodehash         << DEFAULT >> => false
+    rule Ghasdupn                << DEFAULT >> => false
 ```
 
 ```c++
@@ -2549,6 +2550,20 @@ static const EVMSchedule ConstantinopleFixSchedule = [] {
 }();
 ```
 
+
+### Istanbul Schedule
+
+```k
+    syntax Schedule ::= "ISTANBUL" [klabel(ISTANBUL_EVM), symbol]
+ // -----------------------------------------------------------------
+    rule SCHEDCONST < ISTANBUL > => SCHEDCONST < PETERSBURG >
+
+    rule SCHEDFLAG       << ISTANBUL >> => SCHEDFLAG << PETERSBURG >>
+      requires notBool ( SCHEDFLAG ==K Ghasdupn )
+
+    rule Ghasdupn << ISTANBUL >> => true
+```
+
 EVM Program Representations
 ===========================
 
@@ -2580,12 +2595,15 @@ After interpreting the strings representing programs as a `WordStack`, it should
 
     rule #dasmOpCodes( OPS, .WordStack, _ ) => OPS
     rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(#dasmOpCode(W, SCHED) ; OPS, WS, SCHED) requires W >=Int 0   andBool W <=Int 95
-    rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(#dasmOpCode(W, SCHED) ; OPS, WS, SCHED) requires W >=Int 165 andBool W <=Int 255
+    rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(#dasmOpCode(W, SCHED) ; OPS, WS, SCHED) requires W >=Int 240 andBool W <=Int 255
     rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(DUP(W -Int 127)       ; OPS, WS, SCHED) requires W >=Int 128 andBool W <=Int 143
     rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(SWAP(W -Int 143)      ; OPS, WS, SCHED) requires W >=Int 144 andBool W <=Int 159
     rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(LOG(W -Int 160)       ; OPS, WS, SCHED) requires W >=Int 160 andBool W <=Int 164
 
     rule #dasmOpCodes( OPS, W : WS, SCHED ) => #dasmOpCodes(PUSH(W -Int 95, #asWord(#take(W -Int 95, WS))) ; OPS, #drop(W -Int 95, WS), SCHED) requires W >=Int 96  andBool W <=Int 127
+
+    rule #dasmOpCodes( OPS, 176 : WS, SCHED ) => #dasmOpCodes(DUP (#asWord(#take(2, WS))) ; OPS, #drop(2, WS), SCHED) requires Ghasdupn << SCHED >>
+    rule #dasmOpCodes( OPS, 177 : WS, SCHED ) => #dasmOpCodes(SWAP(#asWord(#take(2, WS))) ; OPS, #drop(2, WS), SCHED) requires Ghasdupn << SCHED >>
 
     syntax OpCode ::= #dasmOpCode ( Int , Schedule ) [function]
  // -----------------------------------------------------------
