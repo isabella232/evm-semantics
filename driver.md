@@ -593,42 +593,32 @@ The `"rlp"` key loads the block information.
          </k>
       requires REST =/=K .JSONList
 
-    rule <k> load "transaction" : { TXID : { "gasLimit" : (TG:String => #asWord(#parseByteStackRaw(TG)))         } } ... </k>
-    rule <k> load "transaction" : { TXID : { "gasPrice" : (TP:String => #asWord(#parseByteStackRaw(TP)))         } } ... </k>
-    rule <k> load "transaction" : { TXID : { "nonce"    : (TN:String => #asWord(#parseByteStackRaw(TN)))         } } ... </k>
-    rule <k> load "transaction" : { TXID : { "v"        : (TW:String => #asWord(#parseByteStackRaw(TW)))         } } ... </k>
-    rule <k> load "transaction" : { TXID : { "value"    : (TV:String => #asWord(#parseByteStackRaw(TV)))         } } ... </k>
-    rule <k> load "transaction" : { TXID : { "to"       : (TT:String => #asAccount(#parseByteStackRaw(TT)))      } } ... </k>
-    rule <k> load "transaction" : { TXID : { "data"     : (TI:String => #parseByteStackRaw(TI))                  } } ... </k>
-    rule <k> load "transaction" : { TXID : { "r"        : (TR:String => #padToWidth(32, #parseByteStackRaw(TR))) } } ... </k>
-    rule <k> load "transaction" : { TXID : { "s"        : (TS:String => #padToWidth(32, #parseByteStackRaw(TS))) } } ... </k>
+    rule <k> load "transaction" : { TXID : { "gasLimit" : TG:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <txGasLimit> _ => #asWord(#parseByteStackRaw(TG)) </txGasLimit> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "gasLimit" : TG:Int } } => . ... </k>
-         <message> <msgID> TXID </msgID> <txGasLimit> _ => TG </txGasLimit> ... </message>
+    rule <k> load "transaction" : { TXID : { "gasPrice" : TP:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <txGasPrice> _ => #asWord(#parseByteStackRaw(TP)) </txGasPrice> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "gasPrice" : TP:Int } } => . ... </k>
-         <message> <msgID> TXID </msgID> <txGasPrice> _ => TP </txGasPrice> ... </message>
+    rule <k> load "transaction" : { TXID : { "nonce" : TN:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <txNonce> _ => #asWord(#parseByteStackRaw(TN)) </txNonce> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "nonce" : TN:Int } } => . ... </k>
-         <message> <msgID> TXID </msgID> <txNonce> _ => TN </txNonce> ... </message>
+    rule <k> load "transaction" : { TXID : { "value" : TV:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <value> _ => #asWord(#parseByteStackRaw(TV)) </value> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "value" : TV:Int } } => . ... </k>
-         <message> <msgID> TXID </msgID> <value> _ => TV </value> ... </message>
+    rule <k> load "transaction" : { TXID : { "to" : TT:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <to> _ => #asAccount(#parseByteStackRaw(TT)) </to> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "to" : TT:Account } } => . ... </k>
-         <message> <msgID> TXID </msgID> <to> _ => TT </to> ... </message>
+    rule <k> load "transaction" : { TXID : { "data" : TI:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <data> _ => #parseByteStackRaw(TI) </data> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "data" : TI:WordStack } } => . ... </k>
-         <message> <msgID> TXID </msgID> <data> _ => TI </data> ... </message>
+    rule <k> load "transaction" : { TXID : { "v" : TW:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <sigV> _ => #asWord(#parseByteStackRaw(TW)) </sigV> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "v" : TW:Int } } => . ... </k>
-         <message> <msgID> TXID </msgID> <sigV> _ => TW </sigV> ... </message>
+    rule <k> load "transaction" : { TXID : { "r" : TR:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <sigR> _ => #padToWidth(32, #parseByteStackRaw(TR)) </sigR> ... </message>
 
-    rule <k> load "transaction" : { TXID : { "r" : TR:WordStack } } => . ... </k>
-         <message> <msgID> TXID </msgID> <sigR> _ => TR </sigR> ... </message>
-
-    rule <k> load "transaction" : { TXID : { "s" : TS:WordStack } } => . ... </k>
-         <message> <msgID> TXID </msgID> <sigS> _ => TS </sigS> ... </message>
+    rule <k> load "transaction" : { TXID : { "s" : TS:String } } => . ... </k>
+         <message> <msgID> TXID </msgID> <sigS> _ => #padToWidth(32, #parseByteStackRaw(TS)) </sigS> ... </message>
 ```
 
 ### Checking State
