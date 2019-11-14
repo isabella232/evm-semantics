@@ -688,8 +688,18 @@ These are just used by the other operators for shuffling local execution state a
 
 ```k
     syntax InternalOp ::= "#newAccount" Int
- // ---------------------------------------
-    rule <k> #newAccount ACCT => #end EVMC_ACCOUNT_ALREADY_EXISTS ... </k>
+                        | "#newExistingAccount" Int
+                        | "#newFreshAccount" Int
+ // --------------------------------------------
+    rule <k> #newAccount ACCT => #newExistingAccount ACCT ... </k>
+         <activeAccounts> ACCTS:Set </activeAccounts>
+      requires ACCT in ACCTS
+
+    rule <k> #newAccount ACCT => #newFreshAccount ACCT ... </k>
+         <activeAccounts> ACCTS:Set </activeAccounts>
+      requires notBool ACCT in ACCTS
+
+    rule <k> #newExistingAccount ACCT => #end EVMC_ACCOUNT_ALREADY_EXISTS ... </k>
          <account>
            <acctID> ACCT  </acctID>
            <code>   CODE  </code>
@@ -698,7 +708,7 @@ These are just used by the other operators for shuffling local execution state a
          </account>
       requires CODE =/=K .WordStack orBool NONCE =/=Int 0
 
-    rule <k> #newAccount ACCT => . ... </k>
+    rule <k> #newExistingAccount ACCT => . ... </k>
          <account>
            <acctID>      ACCT       </acctID>
            <code>        .WordStack </code>
@@ -708,8 +718,8 @@ These are just used by the other operators for shuffling local execution state a
            ...
          </account>
 
-    rule <k> #newAccount ACCT => . ... </k>
-         <activeAccounts> ACCTS (.Set => SetItem(ACCT)) </activeAccounts>
+    rule <k> #newFreshAccount ACCT => . ... </k>
+         <activeAccounts> ACCTS:Set (.Set => SetItem(ACCT)) </activeAccounts>
          <accounts>
            ( .Bag
           => <account>
@@ -719,7 +729,6 @@ These are just used by the other operators for shuffling local execution state a
            )
            ...
          </accounts>
-      requires notBool ACCT in ACCTS
 ```
 
 The following operations help with loading account information from an external running client.
